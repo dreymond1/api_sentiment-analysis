@@ -1,7 +1,7 @@
 import os
-from flask import Flask, request, jsonify
 import numpy as np
 import pickle
+from flask import Flask, request, jsonify
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 import tensorflow as tf
 import gc
@@ -23,7 +23,7 @@ with open("files/tokenizer.pkl", "rb") as f:
 with open("files/label_encoder.pkl", "rb") as f:
     label_encoder = pickle.load(f)
 
-# Função para prever o sentimento do texto usando TFLite
+# Função para prever o sentimento usando TFLite
 def prever_sentimento_tflite(texto, interpreter, tokenizer, max_len_contexto=50):
     # Tokenização
     X_novos_comentarios = tokenizer.texts_to_sequences([texto])
@@ -58,7 +58,7 @@ def predict():
         if not texto:
             return jsonify({"error": "Texto não fornecido"}), 400
 
-        # Processamento: prever o sentimento
+        # Previsão de sentimento usando o modelo TFLite
         sentimento = prever_sentimento_tflite(texto, interpreter, tokenizer)
 
         # Libere memória
@@ -69,7 +69,6 @@ def predict():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    # Garanta que está usando a variável de ambiente PORT corretamente
-    port = int(os.getenv("PORT", 8080))  # Cloud Run vai fornecer a variável de ambiente PORT
-    print(f"Starting server on port {port}")
-    app.run(host="0.0.0.0", port=port)
+    # Porta configurada para Cloud Run ou execução local
+    #port = int(os.getenv("PORT", 8081))  # Utilizando a variável de ambiente PORT
+    app.run(host="0.0.0.0", port=8081)
