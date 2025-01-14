@@ -71,4 +71,4 @@ def predict():
 if __name__ == "__main__":
     # Porta configurada para Cloud Run ou execução local
     #port = int(os.getenv("PORT", 8081))  # Utilizando a variável de ambiente PORT
-    app.run(host="0.0.0.0", port=8081)
+    app.run(host="0.0.0.0", port=8080)
