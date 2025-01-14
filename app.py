@@ -1,3 +1,4 @@
+import os
 from flask import Flask, request, jsonify
 import numpy as np
 import pickle
@@ -53,4 +54,5 @@ def predict():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+    port = os.getenv('PORT', 8080)  # Usando a variável de ambiente PORT
+    app.run(host="0.0.0.0", port=port)
