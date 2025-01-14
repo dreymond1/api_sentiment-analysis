@@ -69,6 +69,7 @@ def predict():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 8080))
+    # Garanta que está usando a variável de ambiente PORT corretamente
+    port = int(os.getenv("PORT", 8080))  # Cloud Run vai fornecer a variável de ambiente PORT
+    print(f"Starting server on port {port}")
     app.run(host="0.0.0.0", port=port)
-
