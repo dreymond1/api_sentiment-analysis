@@ -54,5 +54,6 @@ def predict():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    port = os.getenv('PORT', 8080)  # Usando a variável de ambiente PORT
-    app.run(host="0.0.0.0", port=port)
+    port = os.getenv('PORT', 5000)  # Usando a variável de ambiente PORT
+    app.run(host="0.0.0.0", port=port, debug=True, use_reloader=False)
+
