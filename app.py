@@ -2,14 +2,20 @@ import os
 from flask import Flask, request, jsonify
 import numpy as np
 import pickle
-from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+import tensorflow as tf
 import gc
 
 app = Flask(__name__)
 
-# Carregando o modelo
-model = load_model("files/sentiment_model.h5")
+# Carregando o modelo TFLite
+tflite_model_path = "files/sentiment_model.tflite"
+interpreter = tf.lite.Interpreter(model_path=tflite_model_path)
+interpreter.allocate_tensors()
+
+# Obtendo detalhes de entrada e saída do modelo
+input_details = interpreter.get_input_details()
+output_details = interpreter.get_output_details()
 
 # Carregando o tokenizer e o label encoder
 with open("files/tokenizer.pkl", "rb") as f:
@@ -17,16 +23,25 @@ with open("files/tokenizer.pkl", "rb") as f:
 with open("files/label_encoder.pkl", "rb") as f:
     label_encoder = pickle.load(f)
 
-# Função para prever o sentimento do texto
-def prever_sentimento(texto, model, tokenizer, max_len_contexto=50):
+# Função para prever o sentimento do texto usando TFLite
+def prever_sentimento_tflite(texto, interpreter, tokenizer, max_len_contexto=50):
     # Tokenização
     X_novos_comentarios = tokenizer.texts_to_sequences([texto])
     
     # Padding para garantir o mesmo tamanho
     X_novos_comentarios = pad_sequences(X_novos_comentarios, maxlen=max_len_contexto, padding='post')
     
-    # Previsão
-    predicoes = model.predict(X_novos_comentarios)
+    # Preparando os dados para o modelo TFLite
+    X_novos_comentarios = np.array(X_novos_comentarios, dtype=np.float32)
+    
+    # Configurando os tensores de entrada do TFLite
+    interpreter.set_tensor(input_details[0]['index'], X_novos_comentarios)
+    
+    # Executando a inferência
+    interpreter.invoke()
+    
+    # Obtendo os resultados
+    predicoes = interpreter.get_tensor(output_details[0]['index'])
     
     # Decodificando as previsões
     y_pred = np.argmax(predicoes, axis=1)  # Pegando a classe com maior probabilidade
@@ -44,7 +59,7 @@ def predict():
             return jsonify({"error": "Texto não fornecido"}), 400
 
         # Processamento: prever o sentimento
-        sentimento = prever_sentimento(texto, model, tokenizer)
+        sentimento = prever_sentimento_tflite(texto, interpreter, tokenizer)
 
         # Libere memória
         gc.collect()
@@ -56,4 +71,3 @@ def predict():
 if __name__ == "__main__":
     port = os.getenv('PORT', 5000)  # Usando a variável de ambiente PORT
     app.run(host="0.0.0.0", port=port, debug=True, use_reloader=False)
-
