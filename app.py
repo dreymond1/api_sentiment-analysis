@@ -19,11 +19,14 @@ def carregar_recursos():
 
     return interpreter, tokenizer, label_encoder
 
-# Carrega os recursos uma vez no início
-interpreter, tokenizer, label_encoder = carregar_recursos()
+
 
 # Rota para a API
 @app.route("/")
 def main():
-    return "<p>Hello</p>"
+
+    # Carrega os recursos uma vez no início
+    interpreter, tokenizer, label_encoder = carregar_recursos()
+    
+    return jsonify({"status": "Modelo carregado com sucesso!"})
 
