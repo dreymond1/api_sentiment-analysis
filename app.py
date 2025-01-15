@@ -3,9 +3,11 @@ import tensorflow as tf
 import pickle
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 import numpy as np
+import logging
 
 # Inicializa o aplicativo Flask
 app = Flask(__name__)
+logging.basicConfig(level=logging.INFO)
 
 # Função para carregar recursos do modelo
 def carregar_recursos():
@@ -47,22 +49,25 @@ def prever_sentimento(texto):
 # Rota para a API
 @app.route("/", methods=["POST"])
 def main():
-
-    # Carrega os recursos uma vez no início
-    interpreter, tokenizer, label_encoder = carregar_recursos()
-
     try:
+        logging.info("Requisição recebida")
+        # Carrega os recursos uma vez no início
+        interpreter, tokenizer, label_encoder = carregar_recursos()
+        logging.info("Recursos carregados com sucesso")
+
         texto = request.json.get("texto", "")
+        logging.info(f"Texto recebido: {texto}")
+
         if not texto:
-            #app.logger.error("Texto não fornecido")
+            logging.error("Texto não fornecido")
             return jsonify({"error": "Texto não fornecido"}), 400
 
         sentimento = prever_sentimento(texto)
-        #app.logger.info(f"Sentimento previsto: {sentimento}")
+        logging.info(f"Sentimento previsto: {sentimento}")
         return jsonify({"sentimento": sentimento})
     except Exception as e:
-        #app.logger.error(f"Erro na API: {e}")
-        return jsonify({"error": str(e)}), 500
+        logging.error(f"Erro interno: {e}")
+        return jsonify({"error": f"Erro interno: {str(e)}"}), 500
     #return jsonify({"status": "Modelo carregado com sucesso!"})
 
 
