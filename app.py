@@ -4,7 +4,7 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 
 # Rota para a API
-@app.route("/", methods=["POST"])
+@app.route("/")
 def main():
     return "<p>Hello</p>"
 
