@@ -3,11 +3,9 @@ import tensorflow as tf
 import pickle
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 import numpy as np
-import logging
 
 # Inicializa o aplicativo Flask
 app = Flask(__name__)
-logging.basicConfig(level=logging.INFO)
 
 # Função para carregar recursos do modelo
 def carregar_recursos():
@@ -47,7 +45,7 @@ def prever_sentimento(texto):
         raise ValueError(f"Erro ao prever sentimento: {str(e)}")
 
 # Rota para a API
-@app.route("/", methods=["POST"])
+@app.route("/")
 def main():
     try:
         # Carrega os recursos uma vez no início
