@@ -57,15 +57,17 @@ def prever_sentimento(texto):
 # Rota para a API
 @app.route("/", methods=["POST"])
 def predict():
-    dados = request.json
-    texto = dados.get("texto", "")
-    if not texto:
-        return jsonify({"error": "Texto não fornecido"}), 400
-
     try:
+        texto = request.json.get("texto", "")
+        if not texto:
+            app.logger.error("Texto não fornecido")
+            return jsonify({"error": "Texto não fornecido"}), 400
+
         sentimento = prever_sentimento(texto)
+        app.logger.info(f"Sentimento previsto: {sentimento}")
         return jsonify({"sentimento": sentimento})
     except Exception as e:
+        app.logger.error(f"Erro na API: {e}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
