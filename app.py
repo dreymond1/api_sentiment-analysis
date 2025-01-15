@@ -3,6 +3,7 @@ import pickle
 from flask import Flask, request, jsonify
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 import tensorflow as tf
+import os
 
 # Inicializa o aplicativo Flask
 app = Flask(__name__)
@@ -68,4 +69,5 @@ def predict():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8081)
+    port = int(os.environ.get("PORT", 8080))  # Use a porta da variável de ambiente ou 8080 como padrão
+    app.run(host="0.0.0.0", port=port)
