@@ -52,14 +52,6 @@ def main():
     # Carrega os recursos uma vez no início
     interpreter, tokenizer, label_encoder = carregar_recursos()
 
-     try:
-        texto = request.json.get("texto", "")
-        if not texto:
-            return jsonify({"error": "Texto não fornecido"}), 400
-
-        sentimento = prever_sentimento(texto)
-        return jsonify(sentimento)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return jsonify({"status": "Modelo carregado com sucesso!"})
 
 
