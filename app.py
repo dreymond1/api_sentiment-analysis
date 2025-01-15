@@ -1,69 +1,68 @@
-import os
 import numpy as np
 import pickle
 from flask import Flask, request, jsonify
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 import tensorflow as tf
-import gc
 
+# Inicializa o aplicativo Flask
 app = Flask(__name__)
 
-# Carregando o modelo TFLite
-tflite_model_path = "files/sentiment_model.tflite"
-interpreter = tf.lite.Interpreter(model_path=tflite_model_path)
-interpreter.allocate_tensors()
+# Função para carregar recursos do modelo
+def carregar_recursos():
+    # Caminhos dos arquivos
+    modelo_path = "files/sentiment_model.tflite"
+    tokenizer_path = "files/tokenizer.pkl"
+    label_encoder_path = "files/label_encoder.pkl"
 
-# Obtendo detalhes de entrada e saída do modelo
-input_details = interpreter.get_input_details()
-output_details = interpreter.get_output_details()
+    # Carregando o modelo TFLite
+    interpreter = tf.lite.Interpreter(model_path=modelo_path)
+    interpreter.allocate_tensors()
 
-# Carregando o tokenizer e o label encoder
-with open("files/tokenizer.pkl", "rb") as f:
-    tokenizer = pickle.load(f)
-with open("files/label_encoder.pkl", "rb") as f:
-    label_encoder = pickle.load(f)
+    # Carregando tokenizer e label encoder
+    with open(tokenizer_path, "rb") as f:
+        tokenizer = pickle.load(f)
+    with open(label_encoder_path, "rb") as f:
+        label_encoder = pickle.load(f)
 
-# Função para prever o sentimento usando TFLite
-def prever_sentimento_tflite(texto, interpreter, tokenizer, max_len_contexto=50):
-    # Tokenização
-    X_novos_comentarios = tokenizer.texts_to_sequences([texto])
-    
-    # Padding para garantir o mesmo tamanho
-    X_novos_comentarios = pad_sequences(X_novos_comentarios, maxlen=max_len_contexto, padding='post')
-    
-    # Preparando os dados para o modelo TFLite
-    X_novos_comentarios = np.array(X_novos_comentarios, dtype=np.float32)
-    
-    # Configurando os tensores de entrada do TFLite
-    interpreter.set_tensor(input_details[0]['index'], X_novos_comentarios)
-    
-    # Executando a inferência
-    interpreter.invoke()
-    
-    # Obtendo os resultados
-    predicoes = interpreter.get_tensor(output_details[0]['index'])
-    
-    # Decodificando as previsões
-    y_pred = np.argmax(predicoes, axis=1)  # Pegando a classe com maior probabilidade
-    sentimento_predito = label_encoder.inverse_transform(y_pred)
+    return interpreter, tokenizer, label_encoder
 
-    return sentimento_predito[0]  # Retorna o primeiro sentimento
+# Carrega os recursos uma vez no início
+interpreter, tokenizer, label_encoder = carregar_recursos()
 
+# Função para prever o sentimento
+def prever_sentimento(texto):
+    try:
+        # Tokenização e padding
+        sequencia = tokenizer.texts_to_sequences([texto])
+        sequencia_padded = pad_sequences(sequencia, maxlen=50, padding='post')
+
+        # Preparação para o modelo TFLite
+        sequencia_array = np.array(sequencia_padded, dtype=np.float32)
+        input_details = interpreter.get_input_details()
+        output_details = interpreter.get_output_details()
+
+        # Inferência com TFLite
+        interpreter.set_tensor(input_details[0]['index'], sequencia_array)
+        interpreter.invoke()
+        predicoes = interpreter.get_tensor(output_details[0]['index'])
+
+        # Decodificação do resultado
+        classe_predita = np.argmax(predicoes, axis=1)
+        sentimento = label_encoder.inverse_transform(classe_predita)
+        return sentimento[0]
+    except Exception as e:
+        raise ValueError(f"Erro ao prever sentimento: {str(e)}")
+
+# Rota para a API
 @app.route("/", methods=["POST"])
 def predict():
+    dados = request.json
+    texto = dados.get("texto", "")
+    if not texto:
+        return jsonify({"error": "Texto não fornecido"}), 400
+
     try:
-        dados = request.json
-        texto = dados.get("texto", "")
-        
-        if not texto:
-            return jsonify({"error": "Texto não fornecido"}), 400
-
-        # Previsão de sentimento usando o modelo TFLite
-        sentimento = prever_sentimento_tflite(texto, interpreter, tokenizer)
-
-        # Libere memória
-        gc.collect()
-
+        sentimento = prever_sentimento(texto)
         return jsonify({"sentimento": sentimento})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
