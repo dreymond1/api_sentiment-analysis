@@ -47,27 +47,22 @@ def prever_sentimento(texto):
         raise ValueError(f"Erro ao prever sentimento: {str(e)}")
 
 # Rota para a API
-@app.route("/", methods=["POST"])
+@app.route("/", methods=["GET"])
 def main():
     try:
-        logging.info("Requisição recebida")
         # Carrega os recursos uma vez no início
         interpreter, tokenizer, label_encoder = carregar_recursos()
-        logging.info("Recursos carregados com sucesso")
 
         texto = request.json.get("texto", "")
-        logging.info(f"Texto recebido: {texto}")
 
         if not texto:
             logging.error("Texto não fornecido")
             return jsonify({"error": "Texto não fornecido"}), 400
 
-        sentimento = prever_sentimento(texto)
-        logging.info(f"Sentimento previsto: {sentimento}")
-        return jsonify({"sentimento": "positivo"})
-    except Exception as e:
-        logging.error(f"Erro interno: {e}")
-        return jsonify({"error": f"Erro interno: {str(e)}"}), 500
-    #return jsonify({"status": "Modelo carregado com sucesso!"})
+        #sentimento = prever_sentimento(texto)
+        #return jsonify({"sentimento": sentimento})
+    #except Exception as e:
+        #return jsonify({"error": f"Erro interno: {str(e)}"}), 500
+    return jsonify({"status": "Modelo carregado com sucesso!"})
 
 
