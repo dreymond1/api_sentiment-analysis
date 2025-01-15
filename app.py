@@ -54,7 +54,7 @@ def prever_sentimento(texto):
         raise ValueError(f"Erro ao prever sentimento: {str(e)}")
 
 # Rota para a API
-@app.route("/predict", methods=["POST"])
+@app.route("/", methods=["POST"])
 def predict():
     dados = request.json
     texto = dados.get("texto", "")
@@ -68,4 +68,4 @@ def predict():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+    app.run(host="0.0.0.0", port=8081)
