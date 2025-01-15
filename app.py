@@ -53,11 +53,11 @@ def main():
         # Carrega os recursos uma vez no início
         interpreter, tokenizer, label_encoder = carregar_recursos()
 
-        texto = request.json.get("texto", "")
+        #texto = request.json.get("texto", "")
 
-        if not texto:
-            logging.error("Texto não fornecido")
-            return jsonify({"error": "Texto não fornecido"}), 400
+        #if not texto:
+            #logging.error("Texto não fornecido")
+            #return jsonify({"error": "Texto não fornecido"}), 400
 
         #sentimento = prever_sentimento(texto)
         #return jsonify({"sentimento": sentimento})
