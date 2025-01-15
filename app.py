@@ -47,7 +47,7 @@ def prever_sentimento(texto):
         raise ValueError(f"Erro ao prever sentimento: {str(e)}")
 
 # Rota para a API
-@app.route("/", methods=["GET"])
+@app.route("/", methods=["POST"])
 def main():
     try:
         # Carrega os recursos uma vez no início
