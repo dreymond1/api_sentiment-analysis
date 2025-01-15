@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify
 import tensorflow as tf
 import pickle
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+import numpy as np
 
 # Inicializa o aplicativo Flask
 app = Flask(__name__)
@@ -18,7 +20,29 @@ def carregar_recursos():
         label_encoder = pickle.load(f)
 
     return interpreter, tokenizer, label_encoder
+    
+def prever_sentimento(texto):
+    try:
+        # Tokenização e padding
+        sequencia = tokenizer.texts_to_sequences([texto])
+        sequencia_padded = pad_sequences(sequencia, maxlen=50, padding='post')
 
+        # Preparação para o modelo TFLite
+        sequencia_array = np.array(sequencia_padded, dtype=np.float32)
+        input_details = interpreter.get_input_details()
+        output_details = interpreter.get_output_details()
+
+        # Inferência com TFLite
+        interpreter.set_tensor(input_details[0]['index'], sequencia_array)
+        interpreter.invoke()
+        predicoes = interpreter.get_tensor(output_details[0]['index'])
+
+        # Decodificação do resultado
+        classe_predita = np.argmax(predicoes, axis=1)
+        sentimento = label_encoder.inverse_transform(classe_predita)
+        return sentimento[0]
+    except Exception as e:
+        raise ValueError(f"Erro ao prever sentimento: {str(e)}")
 
 
 # Rota para a API
