@@ -10,8 +10,14 @@ logging.basicConfig(level=logging.DEBUG)
 # Inicializa o aplicativo Flask
 app = Flask(__name__)
 
+# Variáveis globais
+interpreter = None
+tokenizer = None
+label_encoder = None
+
 # Função para carregar recursos do modelo
 def carregar_recursos():
+    global interpreter, tokenizer, label_encoder
     try:
         # Carregando o modelo TFLite
         logging.debug("Carregando o modelo TFLite.")
@@ -82,7 +88,9 @@ def main():
         return jsonify({"message": "Servidor funcionando. Use POST para enviar dados."}), 200
     elif request.method == "POST":
         try:
-            interpreter, tokenizer, label_encoder = carregar_recursos()
+            # Carregar recursos uma vez
+            if not interpreter or not tokenizer or not label_encoder:
+                carregar_recursos()
 
             dados = request.get_json()
             if not dados or "texto" not in dados:
@@ -90,7 +98,7 @@ def main():
 
             texto = dados["texto"]
             sentimento = prever_sentimento(texto)
-            return jsonify(sentimento)
+            return jsonify({"sentimento": sentimento})
         except Exception as e:
             return jsonify({"error": f"Erro interno: {str(e)}"}), 500
 
@@ -102,7 +110,8 @@ def teste():
         logging.debug("Iniciando teste com texto fixo.")
 
         # Carregue os recursos
-        interpreter, tokenizer, label_encoder = carregar_recursos()
+        if not interpreter or not tokenizer or not label_encoder:
+            carregar_recursos()
         logging.debug("Recursos carregados com sucesso.")
 
         # Preveja o sentimento
