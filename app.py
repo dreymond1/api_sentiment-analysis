@@ -45,17 +45,24 @@ def prever_sentimento(texto):
         raise ValueError(f"Erro ao prever sentimento: {str(e)}")
 
 # Rota para a API
-@app.route("/", methods=["POST", "GET"])
+@app.route("/", methods=["POST"])
 def main():
+    if request.content_type != "application/json":
+        return jsonify({"error": "O cabeçalho Content-Type deve ser 'application/json'"}), 415
+
     try:
         interpreter, tokenizer, label_encoder = carregar_recursos()
-        texto = request.json.get("texto", "")
-        if not texto:
+
+        dados = request.get_json()
+        if not dados or "texto" not in dados:
             return jsonify({"error": "Texto não fornecido"}), 400
+
+        texto = dados["texto"]
         sentimento = prever_sentimento(texto)
         return jsonify({"sentimento": sentimento})
     except Exception as e:
         return jsonify({"error": f"Erro interno: {str(e)}"}), 500
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
