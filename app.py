@@ -45,7 +45,7 @@ def prever_sentimento(texto):
         raise ValueError(f"Erro ao prever sentimento: {str(e)}")
 
 # Rota para a API
-@app.route("/")
+@app.route("/", methods=["POST"])
 def main():
     try:
         # Carrega os recursos uma vez no início
@@ -56,10 +56,10 @@ def main():
         if not texto:
             return jsonify({"error": "Texto não fornecido"}), 400
 
-        #sentimento = prever_sentimento(texto)
-        #return jsonify({"sentimento": sentimento})
+        sentimento = prever_sentimento(texto)
+        return jsonify({"sentimento": sentimento})
     except Exception as e:
         return jsonify({"error": f"Erro interno: {str(e)}"}), 500
-    return jsonify({"status": "Modelo carregado com sucesso!"})
+    #return jsonify({"status": "Modelo carregado com sucesso!"})
 
 
