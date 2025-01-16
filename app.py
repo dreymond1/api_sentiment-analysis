@@ -3,45 +3,76 @@ import tensorflow as tf
 import pickle
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 import numpy as np
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 # Inicializa o aplicativo Flask
 app = Flask(__name__)
 
 # Função para carregar recursos do modelo
 def carregar_recursos():
-    # Carregando o modelo TFLite
-    interpreter = tf.lite.Interpreter(model_path="files/sentiment_model.tflite")
-    interpreter.allocate_tensors()
+    try:
+        # Carregando o modelo TFLite
+        logging.debug("Carregando o modelo TFLite.")
+        interpreter = tf.lite.Interpreter(model_path="files/sentiment_model.tflite")
+        interpreter.allocate_tensors()
+        logging.debug("Modelo TFLite carregado com sucesso.")
 
-    # Carregando tokenizer e label encoder
-    with open("files/tokenizer.pkl", "rb") as f:
-        tokenizer = pickle.load(f)
-    with open("files/label_encoder.pkl", "rb") as f:
-        label_encoder = pickle.load(f)
+        # Carregando tokenizer
+        logging.debug("Carregando o tokenizer.")
+        with open("files/tokenizer.pkl", "rb") as f:
+            tokenizer = pickle.load(f)
 
-    return interpreter, tokenizer, label_encoder
+        # Carregando label encoder
+        logging.debug("Carregando o label encoder.")
+        with open("files/label_encoder.pkl", "rb") as f:
+            label_encoder = pickle.load(f)
+
+        return interpreter, tokenizer, label_encoder
+    except FileNotFoundError as e:
+        logging.error(f"Arquivo não encontrado: {e}")
+        raise FileNotFoundError(f"Erro ao carregar recursos: {str(e)}")
+    except Exception as e:
+        logging.error(f"Erro ao carregar recursos: {e}")
+        raise ValueError(f"Erro ao carregar recursos: {str(e)}")
+
 
 def prever_sentimento(texto):
     try:
+        logging.debug(f"Texto recebido para previsão: {texto}")
+
         # Tokenização e padding
         sequencia = tokenizer.texts_to_sequences([texto])
+        logging.debug(f"Sequência tokenizada: {sequencia}")
+
         sequencia_padded = pad_sequences(sequencia, maxlen=50, padding='post')
+        logging.debug(f"Sequência com padding: {sequencia_padded}")
 
         # Preparação para o modelo TFLite
         sequencia_array = np.array(sequencia_padded, dtype=np.float32)
+        logging.debug(f"Array numpy preparado para TFLite: {sequencia_array}")
+
         input_details = interpreter.get_input_details()
-       # output_details = interpreter.get_output_details()
+        output_details = interpreter.get_output_details()
+        logging.debug(f"Detalhes de entrada: {input_details}")
+        logging.debug(f"Detalhes de saída: {output_details}")
 
         # Inferência com TFLite
         interpreter.set_tensor(input_details[0]['index'], sequencia_array)
         interpreter.invoke()
         predicoes = interpreter.get_tensor(output_details[0]['index'])
+        logging.debug(f"Predições do modelo: {predicoes}")
 
         # Decodificação do resultado
         classe_predita = np.argmax(predicoes, axis=1)
+        logging.debug(f"Classe prevista: {classe_predita}")
+
         sentimento = label_encoder.inverse_transform(classe_predita)
+        logging.debug(f"Sentimento previsto: {sentimento[0]}")
         return sentimento[0]
     except Exception as e:
+        logging.error(f"Erro ao prever sentimento: {str(e)}")
         raise ValueError(f"Erro ao prever sentimento: {str(e)}")
 
 # Rota para a API
