@@ -63,7 +63,25 @@ def main():
         except Exception as e:
             return jsonify({"error": f"Erro interno: {str(e)}"}), 500
 
+@app.route("/teste", methods=["GET"])
+def teste():
+    try:
+        # Texto de teste
+        texto_teste = "eu amo esse produto"
+        logging.debug("Iniciando teste com texto fixo.")
 
+        # Carregue os recursos
+        interpreter, tokenizer, label_encoder = carregar_recursos()
+        logging.debug("Recursos carregados com sucesso.")
+
+        # Preveja o sentimento
+        sentimento = prever_sentimento(texto_teste)
+        logging.debug(f"Sentimento previsto com sucesso: {sentimento}")
+
+        return jsonify({"texto": texto_teste, "sentimento": sentimento}), 200
+    except Exception as e:
+        logging.error(f"Erro ao executar teste: {e}")
+        return jsonify({"error": f"Erro ao executar teste: {str(e)}"}), 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
