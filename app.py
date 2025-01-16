@@ -56,7 +56,7 @@ def main():
             if not texto:
                 return jsonify({"error": "Texto não fornecido"}), 400
             sentimento = prever_sentimento(texto)
-            return jsonify(sentimento})
+            return jsonify(sentimento)
         except Exception as e:
             return jsonify({"error": f"Erro interno: {str(e)}"}), 500
 
