@@ -59,8 +59,8 @@ def main():
 
         #sentimento = prever_sentimento(texto)
         #return jsonify({"sentimento": sentimento})
-    #except Exception as e:
-        #return jsonify({"error": f"Erro interno: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"error": f"Erro interno: {str(e)}"}), 500
     return jsonify({"status": "Modelo carregado com sucesso!"})
 
 
