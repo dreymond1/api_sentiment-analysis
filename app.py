@@ -59,7 +59,7 @@ def main():
 
             texto = dados["texto"]
             sentimento = prever_sentimento(texto)
-            return jsonify({"sentimento": sentimento})
+            return jsonify(sentimento)
         except Exception as e:
             return jsonify({"error": f"Erro interno: {str(e)}"}), 500
 
